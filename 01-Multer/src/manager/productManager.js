@@ -6,9 +6,9 @@ export default class ProductManager {
         this.path = path;
         this.usuarios = []
     }
-    async addProduct(title, description, price, thumbnail, code, stock) {
+    async addProduct(product) {
         const productFile = await this.getProducts()
-        const productoRepetido = productFile.find(product => product.code === code)
+        const productoRepetido = productFile.find(products => products.code === product.code)
         if (productoRepetido) {
             console.log(productoRepetido);
             return "Codigo existente"
@@ -17,12 +17,7 @@ export default class ProductManager {
             const producto = {
                 //Utilice el paquete de uuid para reducir la cantidad de codigo =)
                 id: await uuidv4(),
-                title,
-                description,
-                price,
-                thumbnail,
-                code,
-                stock,
+                ...product,
                 status: true
             }
             productFile.push(producto)
@@ -30,7 +25,7 @@ export default class ProductManager {
             return producto
         }
         catch (error) {
-            console.log(error);
+            throw new Error(error)
         }
     }
     async getProducts() { 
@@ -47,8 +42,7 @@ export default class ProductManager {
                 return [];
             }
         } catch (error) {
-            console.log("Error al leer el archivo:", error);
-            return [];
+            throw new Error(error)
         }
     }
 
@@ -64,8 +58,8 @@ export default class ProductManager {
                 return null;
             }
         } catch (error) {
-            console.log(error);
-            return null; 
+            throw new Error(error)
+            
         }
     }
     
@@ -76,7 +70,7 @@ export default class ProductManager {
             await fs.promises.writeFile(this.path, JSON.stringify(productsFilter))
             return "Producto Eliminado"
         } catch (error) {
-            return error
+            throw new Error(error)
         }
     }
     async updateProduct(id, obj) {
@@ -94,7 +88,7 @@ export default class ProductManager {
             await fs.promises.writeFile(this.path, JSON.stringify(productsFile));
             return "Producto actualizado exitosamente";
         } catch (error) {
-            return error;
+            throw new Error(error)
         }
     }
 }

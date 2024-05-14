@@ -1,50 +1,52 @@
-import {Router} from "express";
+import { Router } from "express";
 import productManager from "../manager/productManager.js";
 const productM = new productManager("./data/product.json");
 import { bodyValidator } from "../middlewares/body.validator.js";
-
+import { socketServer } from "../server.js";
 
 
 const router = Router();
 
 
 
-router.get("/", async (req, res) => {
+router.get("/", async (req, res, next) => {
     try {
         const products = await productM.getProducts();
-        console.log(products);
+
         if (req.query.limit) {
             const limit = parseInt(req.query.limit)
             const limitProduct = products.slice(0, limit);
-            res.send(limitProduct)
+            res.render("product", { products: limitProduct });
         } else {
-            res.send(products)
+            res.render("product", { products });
         }
+
+
     } catch (error) {
-        res.status(500).json({ error: "Ocurrio un problema" })
+        next(error)
     }
 })
-router.get("/:pid", async (req, res) => {
+
+router.get("/:pid", async (req, res, next) => {
     try {
         const id = req.params.pid
         const product = await productM.getProductsById(id);
         res.status(200).json(product)
     } catch (error) {
-        res.status(400).json({ msg: "Error" })
+        next(error)
     }
 
 })
-router.post("/", bodyValidator ,async (req, res) => {
-    
+router.post("/", bodyValidator, async (req, res, next) => {
     try {
         const producto = await productM.addProduct(req.body)
         res.status(200).json(producto)
     } catch (error) {
-        res.status(400).json({ msg: "Error" })
+        next(error)
     }
 })
 
-router.delete("/:pid", async (req, res) => {
+router.delete("/:pid", async (req, res, next) => {
     try {
         const id = req.params.pid
         console.log(id);
@@ -52,11 +54,11 @@ router.delete("/:pid", async (req, res) => {
         const deleteProduct = await productM.deleteProduct(id)
         res.status(200).json({ msg: `${deleteProduct} Sucessfull delete` })
     } catch (error) {
-        res.status(400).json({ msg: "Error" })
+        next(error)
     }
 })
 
-router.put("/:pid", async (req, res) => {
+router.put("/:pid", async (req, res, next) => {
     try {
         const id = req.params.pid
         console.log(id);
@@ -65,7 +67,7 @@ router.put("/:pid", async (req, res) => {
         const newProducts = await productM.getProducts()
         res.status(200).json(newProducts)
     } catch (error) {
-        res.status(400).json({ msg: "Erorr" })
+        next(error)
     }
 })
 

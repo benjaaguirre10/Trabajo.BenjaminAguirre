@@ -7,20 +7,20 @@ export default class cartManager {
         this.cart = [];
     }
     async createCart() {
-        const cartfile = await this.getCart()
         try {
             const cart = {
                 id: await uuidv4(),
                 products: []
             }
-            this.cart.push(cart);
-            console.log(this.cart);
-            await fs.promises.writeFile(this.path, JSON.stringify(this.cart))
+            const cartFile = await this.getCarts()
+            cartFile.push(cart);
+            console.log(cartFile);
+            await fs.promises.writeFile(this.path, JSON.stringify(cartFile))
         } catch (error) {
             return error
         }
     }
-    async getCart() {
+    async getCarts() {
         try {
             if (fs.existsSync(this.path)) {
                 const file = await fs.promises.readFile(this.path, "utf-8");
@@ -38,30 +38,40 @@ export default class cartManager {
             return [];
         }
     }
+    async getCartbyId(id) {
+        try {
+            const carts = await this.getCarts()
+            const cart = carts.find(c => c.id === id)
+            if (!cart) return null;
+            return cart;
+        } catch (error) {
+            throw new Error(error)
+        }
+    }
     async addProduct(cartId, productId, quantity) {
         try {
             const cartList = await this.getCart();
             const cartIndex = cartList.findIndex(cart => cart.id === cartId);
-            
+
             if (cartIndex === -1) {
                 throw new Error("Cart not found");
             }
-            
+
             const cart = cartList[cartIndex];
-    
+
             const existingProductIndex = cart.products.findIndex(product => product.id === productId);
-    
+
             if (existingProductIndex !== -1) {
                 cart.products[existingProductIndex].quantity += quantity;
             } else {
                 cart.products.push({ id: productId, quantity });
             }
-    
+
             await fs.promises.writeFile(this.path, JSON.stringify(cartList));
             return cart;
         } catch (error) {
             return error;
         }
     }
-    
+
 }
